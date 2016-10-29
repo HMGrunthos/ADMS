@@ -1,5 +1,6 @@
 const unsigned long int INETCONNECTIONTIMEOUT 5000; // In milliseconds
 const unsigned long int PURCHASETIMEOUT 30000; // In milliseconds
+const unsigned long int TAUNTTIMEOUT 1000; // In milliseconds
 
 enum ADMSSystemState {
 	Sleeping,
@@ -9,11 +10,10 @@ enum ADMSSystemState {
 	ConnectToInternetFailed,
 	FindItem,
 	FailedToFindItem,
-	AlertUser,
-	Countdown,
-	CountdownEndedTimedOut,
-	CountdownButtonPressed,
-	SoundPurchaseAlarms,
+	AlertUserToPurchase,
+	CountdownToPurchase,
+	PurchaseAvoided,
+	SoundPurchaseAlarm,
 	MakePurchase
 };
 
@@ -23,8 +23,9 @@ struct {
 	struct {
 		unsigned long int connectToInternet;
 		unsigned long int purchase;
+		unsigned long int taunt;
 	} timeouts;
-} appState = {Sleeping, {0}};
+} appState = {Sleeping, {0, 0}};
 
 void setup()
 {
@@ -37,18 +38,20 @@ int loop()
 	switch(appState.systemState) {
 		case Sleeping:
 			appState.systemState = WokenUp;
+			break;
 		case WokenUp:
 			appState.systemState = ConnectToInternetStart;
+			break;
 		case ConnectToInternetStart:
-			attemptConnectToInternet();
-			appState.systemState = ConnectToInternetInProgress;
+			attemptToConnectToInternet();
 			appState.timeouts.connectToInternet = setTimeout(INETCONNECTIONTIMEOUT);
+			appState.systemState = ConnectToInternetInProgress;
 			break;
 		case ConnectToInternetInProgress:
 			if(hasTimedOut(appState.timeouts.connectToInternet)) { // Then we timed out
 				appState.systemState = ConnectToInternetFailed;
 			} else { // Test if the connection succeed?
-				bool connectionMade = hadConnectionSucceeded()
+				bool connectionMade = hasConnectionToInternetSucceeded()
 				if(connectionMade == true) { // Success?
 					appState.systemState = FindItem; // Then start searching for the item
 				} else { // Not yet
@@ -62,7 +65,7 @@ int loop()
 		case FindItem:
 			bool foundItem = findItemToBuy(&appState.itemToBuy);
 			if(foundItem == true) { // Success?
-				appState.systemState = AlertUser;
+				appState.systemState = AlertUserToPurchase;
 			} else { // Failed to find item
 				appState.systemState = FailedToFindItem; // Couldn't find an item, keep quiet about it
 			}
@@ -70,30 +73,50 @@ int loop()
 		case FailedToFindItem:
 			appState.systemState = Sleeping;
 			break;
-		case AlertUser:
+		case AlertUserToPurchase:
 			sendPhoneAlert();
-			soundAlarm();
+			soundPurchaseWarningAlarm();
 			appState.timeouts.purchase = setTimeout(PURCHASETIMEOUT);
-			appState.systemState = Countdown;
+			appState.systemState = CountdownToPurchase;
 			break;
-		case Countdown:
+		case CountdownToPurchase:
 			void buttonPressed = getButtonPressState();
 			if(buttonPressed) {
 				appState.systemState = CountdownButtonPressed;
-			} else {
-				if(timedOut(appState.timeouts.purchase)) { // Test the purchase timeout
-					// No button pressed so go to the purchase state
-					appState.systemState = CountdownEndedTimedOut;
+			} else { // Button not pressed before timed out
+				if(hastimedOut(appState.timeouts.purchase)) { // Test the purchase timeout
+					// No button pressed so start making a purchase
+					appState.systemState = SoundPurchaseAlarm;
+				} else {
+					appState.systemState = CountdownToPurchase; // Stay in the same state
 				}
 			}
 			break;
-		case CountdownEndedTimedOut:
-			break;
 		case CountdownButtonPressed:
+			setUserAbortedDisplayMessage();
+			soundPuchaseAvoidedAlarm();
+			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
+			appState.systemState = TauntUser;
 			break;
-		case SoundPurchaseAlarms:
+		case SoundPurchaseAlarm:
+			setPurchasingDisplayMessage();
+			soundPuchasingAlarm();
+			appState.systemState = MakePurchase;
 			break;
 		case MakePurchase:
+			purchaseSelectedGoods(appState.itemToBuy);
+			setPuchasedDisplayMessage();
+			soundPuchaseMadeAlarm();
+			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
+			appState.systemState = TauntUser;
+			break;
+		case TauntUser:
+			if(hastimedOut(appState.timeouts.taunt)) { // Finished taunting the user
+				powerDownPeripherals();
+				appState.systemState = Sleep;
+			} else {
+				appState.systemState = TauntUser; // Keep taunting with the message
+			}
 			break;
 	}
 }
