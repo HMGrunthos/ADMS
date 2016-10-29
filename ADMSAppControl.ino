@@ -1,6 +1,6 @@
-const unsigned long int INETCONNECTIONTIMEOUT 5000; // In milliseconds
-const unsigned long int PURCHASETIMEOUT 30000; // In milliseconds
-const unsigned long int TAUNTTIMEOUT 1000; // In milliseconds
+const unsigned long int INETCONNECTIONTIMEOUT = 5000; // In milliseconds
+const unsigned long int PURCHASETIMEOUT = 30000; // In milliseconds
+const unsigned long int TAUNTTIMEOUT = 1000; // In milliseconds
 
 enum ADMSSystemState {
 	Sleeping,
@@ -14,24 +14,54 @@ enum ADMSSystemState {
 	CountdownToPurchase,
 	PurchaseAvoided,
 	SoundPurchaseAlarm,
-	MakePurchase
+	MakePurchase,
+	TauntUser
 };
 
 struct {
 	enum ADMSSystemState systemState;
-	std::string itemToBuy;
+	std::string itemToPurchase;
 	struct {
 		unsigned long int connectToInternet;
 		unsigned long int purchase;
 		unsigned long int taunt;
 	} timeouts;
-} appState = {Sleeping, {0, 0}};
+} appState = {Sleeping, {0, 0, 0}};
+
+// Internet functions
+void attemptToConnectToInternet();
+bool hasConnectionToInternetSucceeded();
+
+// Purchasing functions
+bool findItemToBuy(std::string *itemToPurchase);
+void purchaseSelectedGoods(std::string itemToPurchase);
+
+// Phone alert functions
+void sendPhoneAlert();
+
+// Button press functions
+bool getButtonPressState();
+
+void soundPurchaseWarningAlarm();
+void soundPuchaseAvoidedAlarm();
+void soundPuchasingAlarm();
+void soundPuchaseMadeAlarm();
+
+void setPurchasingDisplayMessage();
+void setUserAbortedDisplayMessage();
+void setPuchasedDisplayMessage();
+
+// Utils and hardware management
+static unsigned long int setTimeout(unsigned long int timeout);
+static bool hasTimedOut(unsigned long int timer);
+static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime);
+static void powerDownPeripherals();
 
 void setup()
 {
 }
 
-int loop()
+void loop()
 {
 	unsigned long int nextSleep = 0;
 
@@ -51,7 +81,7 @@ int loop()
 			if(hasTimedOut(appState.timeouts.connectToInternet)) { // Then we timed out
 				appState.systemState = ConnectToInternetFailed;
 			} else { // Test if the connection succeed?
-				bool connectionMade = hasConnectionToInternetSucceeded()
+				bool connectionMade = hasConnectionToInternetSucceeded();
 				if(connectionMade == true) { // Success?
 					appState.systemState = FindItem; // Then start searching for the item
 				} else { // Not yet
@@ -63,8 +93,7 @@ int loop()
 			appState.systemState = Sleeping;
 			break;
 		case FindItem:
-			bool foundItem = findItemToBuy(&appState.itemToBuy);
-			if(foundItem == true) { // Success?
+			if(findItemToBuy(&appState.itemToPurchase)) { // Success?
 				appState.systemState = AlertUserToPurchase;
 			} else { // Failed to find item
 				appState.systemState = FailedToFindItem; // Couldn't find an item, keep quiet about it
@@ -80,11 +109,10 @@ int loop()
 			appState.systemState = CountdownToPurchase;
 			break;
 		case CountdownToPurchase:
-			void buttonPressed = getButtonPressState();
-			if(buttonPressed) {
-				appState.systemState = CountdownButtonPressed;
+			if(getButtonPressState()) {
+				appState.systemState = PurchaseAvoided;
 			} else { // Button not pressed before timed out
-				if(hastimedOut(appState.timeouts.purchase)) { // Test the purchase timeout
+				if(hasTimedOut(appState.timeouts.purchase)) { // Test the purchase timeout
 					// No button pressed so start making a purchase
 					appState.systemState = SoundPurchaseAlarm;
 				} else {
@@ -92,7 +120,7 @@ int loop()
 				}
 			}
 			break;
-		case CountdownButtonPressed:
+		case PurchaseAvoided:
 			setUserAbortedDisplayMessage();
 			soundPuchaseAvoidedAlarm();
 			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
@@ -104,16 +132,16 @@ int loop()
 			appState.systemState = MakePurchase;
 			break;
 		case MakePurchase:
-			purchaseSelectedGoods(appState.itemToBuy);
+			purchaseSelectedGoods(appState.itemToPurchase);
 			setPuchasedDisplayMessage();
 			soundPuchaseMadeAlarm();
 			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
 			appState.systemState = TauntUser;
 			break;
 		case TauntUser:
-			if(hastimedOut(appState.timeouts.taunt)) { // Finished taunting the user
+			if(hasTimedOut(appState.timeouts.taunt)) { // Finished taunting the user
 				powerDownPeripherals();
-				appState.systemState = Sleep;
+				appState.systemState = Sleeping;
 			} else {
 				appState.systemState = TauntUser; // Keep taunting with the message
 			}
@@ -121,21 +149,25 @@ int loop()
 	}
 }
 
-unsigned long int setTimeout(unsigned long int timeout)
+static unsigned long int setTimeout(unsigned long int timeout)
 {
 	return millis() + timeout;
 }
 
-bool hasTimedOut(unsigned long int timer)
+static bool hasTimedOut(unsigned long int timer)
 {
 	return hasTimedOut(timer, millis());
 }
 
-bool hasTimedOut(unsigned long int timer, unsigned long int currentTime)
+static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime)
 {
 	if(currentTime > timer) { // Then we timed out
 		return true;
 	} else { // Timer still running
 		return false;
 	}
+}
+
+static void powerDownPeripherals()
+{
 }
