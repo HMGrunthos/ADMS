@@ -29,7 +29,7 @@ void setup()
   init_backlight(); //use rgb backlight
   DOG.initialize(A2,0,0,D0,D1,0,DOGM163);   //SS = A2, 0,0= use Hardware SPI, D0 = RS, D1 = RESET, 0 = 3.3V, EA DOGM163-A (=3 lines)
   DOG.displ_onoff(true);          //turn Display on
-  DOG.cursor_onoff(true);         //turn Curosor blinking on
+  DOG.cursor_onoff(true);         //turn Cursor blinking on
   DOG.define_char(0, arrow_down); //define own char on memory adress 0
   DOG.position(3,1);              //set Position: first line, third character
   DOG.string("EA DOGM TEXT");     //show String
@@ -43,8 +43,8 @@ void setup()
 
 void loop()
 {
-  if (digitalRead(btn) == HIGH) {
-  }
+  // if (digitalRead(btn) == HIGH) {
+  // }
   DOG.clear_display();            //Clear the whole content
   DOG.position(1,1);              //set Position: first line, first character
   DOG.string("DOGM163-A");        //show String

@@ -255,17 +255,17 @@ void dogm_7036::spi_initialize(byte cs, byte si, byte clk)
 	pinMode(p_cs, OUTPUT);
 
 	// Set Data pin as output
-	pinMode(p_si, OUTPUT);
+	// pinMode(p_si, OUTPUT);
 
 	// Set SPI-Mode 3: CLK idle high, rising edge, MSB first
-	digitalWrite(p_clk, HIGH);
-	pinMode(p_clk, OUTPUT);
+	// digitalWrite(p_clk, HIGH);
+	// pinMode(p_clk, OUTPUT);
 	if(hardware)
 	{
 		SPI.begin();
 		SPI.setBitOrder(MSBFIRST);
 		SPI.setDataMode(SPI_MODE3);
-		SPI.setClockDivider(SPI_CLOCK_DIV16);
+		SPI.setClockDivider(SPI_CLOCK_DIV128);
 	}
 }
 
