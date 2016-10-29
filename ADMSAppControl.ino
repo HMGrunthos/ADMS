@@ -7,7 +7,6 @@ const int BUTTONPIN = D4;
 
 enum ADMSSystemState {
 	Sleeping,
-	WokenUp,
 	ConnectToInternetStart,
 	ConnectToInternetInProgress,
 	ConnectToInternetFailed,
@@ -92,11 +91,8 @@ void loop()
 	switch(appState.systemState) {
 		case Sleeping:
 			if(timeToWakeUp()) {
-				appState.systemState = WokenUp;
+				appState.systemState = ConnectToInternetStart;
 			}
-			break;
-		case WokenUp:
-			appState.systemState = ConnectToInternetStart;
 			break;
 		case ConnectToInternetStart:
 			attemptToConnectToInternet();
@@ -136,6 +132,7 @@ void loop()
 			appState.systemState = CountdownToPurchase;
 			break;
 		case CountdownToPurchase:
+			// Display countdown
 			if(getButtonPressState()) {
 				appState.systemState = PurchaseAborted;
 			} else { // Button not pressed before timed out
