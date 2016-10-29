@@ -64,9 +64,10 @@ bool getButtonPressState();
 
 // Alarm sounding function
 void soundAlarm(enum AlarmSound alarm);
+void powerDownAlarm();
 
 // Display function
-void setDisplayMessage(enum DisplayMessage messageEnum);
+void setDisplayMessage(enum DisplayMessage message);
 void clearDisplayMessage();
 
 // Utils and hardware management
@@ -228,6 +229,10 @@ void soundAlarm(enum AlarmSound alarm)
 	}
 }
 
+void powerDownAlarm()
+{
+}
+
 // Display function
 void setDisplayMessage(enum DisplayMessage message)
 {
@@ -247,4 +252,46 @@ void setDisplayMessage(enum DisplayMessage message)
 
 void clearDisplayMessage()
 {
+}
+
+// Internet functions
+void attemptToConnectToInternet()
+{
+}
+
+bool hasConnectionToInternetSucceeded()
+{
+	return true;
+}
+
+// Purchasing functions
+bool findItemToBuy(std::string *itemToPurchase)
+{
+	itemToPurchase = new std::string("Here is an item.");
+	return true;
+}
+
+void purchaseSelectedGoods(std::string itemToPurchase)
+{
+}
+
+bool hasPurchaseSucceeded()
+{
+	return true;
+}
+
+bool hasPurchaseFailed()
+{
+	return false;
+}
+
+// Phone alert functions
+void sendPhoneAlert()
+{
+}
+
+// Button press functions
+bool getButtonPressState()
+{
+	return false;
 }
