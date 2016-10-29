@@ -3,6 +3,8 @@ const unsigned long int PURCHASETIMEOUT = 30000; // In milliseconds
 const unsigned long int TAUNTTIMEOUT = 1000; // In milliseconds
 const unsigned long int PURCHASECOMPLETETIMEOUT = 30000; // In milliseconds
 
+const int BUTTONPIN = D4;
+
 enum ADMSSystemState {
 	Sleeping,
 	WokenUp,
@@ -74,11 +76,13 @@ void clearDisplayMessage();
 static unsigned long int setTimeout(unsigned long int timeout);
 static bool hasTimedOut(unsigned long int timer);
 static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime);
+static void initHardware();
 static void powerDownPeripherals();
 static bool timeToWakeUp();
 
 void setup()
 {
+	initHardware();
 }
 
 void loop()
@@ -202,6 +206,11 @@ static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime)
 	}
 }
 
+static void initHardware()
+{
+	pinMode(BUTTONPIN, INPUT_PULLHIGH);
+}
+
 static void powerDownPeripherals()
 {
 	clearDisplayMessage();
@@ -293,5 +302,9 @@ void sendPhoneAlert()
 // Button press functions
 bool getButtonPressState()
 {
-	return false;
+	if(digitalRead(BUTTONPIN) == LOW) {
+		return true;
+	} else {
+		return false;
+	}
 }
