@@ -1,0 +1,11 @@
+{
+    "event": "zinc-checkorder",
+    "url": "https://api.zinc.io/v1/orders/{{PARTICLE_EVENT_VALUE}}",
+    "requestType": "GET",
+    "auth": {
+        "username": "293FDBBF3755CCD1F32EFDFC"
+    },
+    "responseTemplate": "{{_type}},{{code}},{{message}}",
+    "rejectUnauthorized": true,
+    "mydevices": true
+}

@@ -13,48 +13,42 @@
           "quantity": 1
         }
       ],
-      "max_price": 2300,
+      "max_price": 50000,
       "shipping_address": {
-        "first_name": "Tim",
-        "last_name": "Beaver",
-        "address_line1": "77 Massachusetts Avenue",
+        "first_name": "Joseph",
+        "last_name": "Hughes",
+        "address_line1": "Museum of Science and Industry",
         "address_line2": "",
-        "zip_code": "02139",
-        "city": "Cambridge",
-        "state": "MA",
-        "country": "US",
-        "phone_number": "5551230101"
+        "zip_code": "M3 4FP",
+        "city": "Manchester",
+        "country": "GB",
+        "phone_number": "07811111111"
       },
-      "is_gift": true,
-      "gift_message": "Here is your package, Tim! Enjoy!",
+      "is_gift": false,
       "shipping": {
         "order_by": "price",
-        "max_days": 5,
-        "max_price": 1000
+        "max_days": 180,
+        "max_price": 50000
       },
       "payment_method": {
-        "name_on_card": "Ben Bitdiddle",
-        "number": "5555555555554444",
-        "security_code": "123",
-        "expiration_month": 1,
-        "expiration_year": 2020,
-        "use_gift": false
+        "use_gift": true
       },
       "billing_address": {
-        "first_name": "William",
-        "last_name": "Rogers",
-        "address_line1": "84 Massachusetts Ave",
+        "first_name": "Joseph",
+        "last_name": "Hughes",
+        "address_line1": "Museum of Science and Industry",
         "address_line2": "",
-        "zip_code": "02139",
-        "city": "Cambridge",
-        "state": "MA",
-        "country": "US",
-        "phone_number": "5551234567"
+        "zip_code": "M3 4FP",
+        "city": "Manchester",
+        "country": "GB",
+        "phone_number": "07811111111"
       },
       "retailer_credentials": {
-        "email": "timbeaver@gmail.com",
-        "password": "myRetailerPassword"
+        "email": "joeh4444+zinc@gmail.com",
+        "password": "EDZ47pZu5uDxWRvJMB2rtSbb3"
       }
     },
+    "responseTemplate": "{{request_id}}",
+    "rejectUnauthorized": true,
     "mydevices": true
 }
