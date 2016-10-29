@@ -56,6 +56,7 @@ static unsigned long int setTimeout(unsigned long int timeout);
 static bool hasTimedOut(unsigned long int timer);
 static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime);
 static void powerDownPeripherals();
+static bool timeToWakeUp();
 
 void setup()
 {
@@ -67,7 +68,9 @@ void loop()
 
 	switch(appState.systemState) {
 		case Sleeping:
-			appState.systemState = WokenUp;
+			if(timeToWakeUp()) {
+				appState.systemState = WokenUp;
+			}
 			break;
 		case WokenUp:
 			appState.systemState = ConnectToInternetStart;
@@ -170,4 +173,9 @@ static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime)
 
 static void powerDownPeripherals()
 {
+}
+
+static bool timeToWakeUp()
+{
+	return true;
 }
