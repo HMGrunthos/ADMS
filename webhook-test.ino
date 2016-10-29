@@ -17,24 +17,36 @@ void getOrderID(const char *event, const char *data) {
 }
 
 void getOrderStatus(const char *event, const char *data) {
+
   // Process Data
-  char type[20];
-  char code[40];
-  char message[256];
-  sscanf(data,"%19[^,],%39[^,],%255[^,]", type, code, message);
+  char *type;
+  char *code;
+  char *merchantId;
+  char *message;
+  char *temp;
+  temp = strdupa (data);
+  type =        strsep(&temp, ",");
+  code =        strsep(&temp, ",");
+  merchantId =  strsep(&temp, ",");
+  message =     strsep(&temp, ",");
+
+  //sscanf(data,"%19[^,],%39[^,],%99[^,],%255[^,]", type, code, merchantId, message);
 
   // Debug
-  //Serial.printlnf("Order Status type=%s code=%s message=%s", type, code, message);
+  //Serial.printlnf("Order Status type=%s code=%s merchantId=%s message=%s", type, code, merchantId, message);
 
   // Keep Checking until success
   if(strcmp(code,"request_processing") == 0) {
     Serial.printlnf("Application>\tOrder is being processed...");
     state = 2;
   // Error
+  } else if (strcmp(merchantId,"") != 0) {
+    Serial.printlnf("Application>\tOrder Success! Amazon Order ID=%s", merchantId);
+    state = 99;
   } else {
     Serial.printlnf("Application>\tOrder Error! Type=%s Code=%s Message=%s", type, code, message);
     strcpy(orderId, "");
-    state = 2;
+    state = 99;
   }
 
 }
@@ -44,7 +56,8 @@ void loop() {
   switch(state) {
     // Make Purchase
     case 0 :
-      purchaseSelectedGoods("B00J06V1Q2");
+      //purchaseSelectedGoods("B00J06V1Q2"); // RULER (1.99)
+      purchaseSelectedGoods("B000NM4OHK"); // RULER ADDON (0.49) - Fails
       break;
     // Wait for Order ID
     case 1 :
@@ -52,7 +65,6 @@ void loop() {
       break;
     // Request Order Status
     case 2 :
-      Serial.printlnf("Application>\tChecking Order...");
       Particle.publish("zinc-checkorder", orderId, PRIVATE);
       state = 3;
       break;
@@ -65,6 +77,9 @@ void loop() {
 }
 
 void purchaseSelectedGoods(const char* productId) {
+  // Start Delay
+  Serial.println("Application>\tWaiting 30s to purchase");
+  delay(10000);
   // Start Delay
   Serial.println("Application>\tWaiting 20s to purchase");
   delay(10000);

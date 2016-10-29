@@ -15,12 +15,12 @@
       ],
       "max_price": 50000,
       "shipping_address": {
-        "first_name": "Joseph",
-        "last_name": "Hughes",
-        "address_line1": "Museum of Science and Industry",
+        "first_name": "John",
+        "last_name": "Welford",
+        "address_line1": "210 Park Road",
         "address_line2": "",
-        "zip_code": "M3 4FP",
-        "city": "Manchester",
+        "zip_code": "SK16 5LP",
+        "city": "Dukinfield",
         "country": "GB",
         "phone_number": "07811111111"
       },
@@ -34,12 +34,12 @@
         "use_gift": true
       },
       "billing_address": {
-        "first_name": "Joseph",
-        "last_name": "Hughes",
-        "address_line1": "Museum of Science and Industry",
+        "first_name": "John",
+        "last_name": "Welford",
+        "address_line1": "210 Park Road",
         "address_line2": "",
-        "zip_code": "M3 4FP",
-        "city": "Manchester",
+        "zip_code": "SK16 5LP",
+        "city": "Dukinfield",
         "country": "GB",
         "phone_number": "07811111111"
       },
