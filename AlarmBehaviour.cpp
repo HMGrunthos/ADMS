@@ -25,12 +25,49 @@ void soundAlarm(enum AlarmSound alarm)
 	switch(alarm) {
 		case PurchaseWarningAlarm:
 			start_play(256);
-			delay(5000);
+			delay(500);
       stop_play();
+			start_play(512);
+			delay(500);
+			stop_play();
+			start_play(256);
+			delay(500);
+			stop_play();
+			start_play(512);
+			delay(500);
+			stop_play();
+			start_play(256);
+			delay(500);
+			stop_play();
+			start_play(512);
+			delay(500);
+			stop_play();
 			break;
 		case AbortedPuchaseAlarm:
+			start_play(512);
+			delay(30);
+			stop_play();
+			delay(30);
+			start_play(512);
+			delay(30);
+			stop_play();
+			delay(30);
+			start_play(512);
+			delay(30);
+			stop_play();
 			break;
 		case PuchasingNowAlarm:
+			start_play(512);
+			delay(70);
+			stop_play();
+			delay(30);
+			start_play(512);
+			delay(70);
+			stop_play();
+			delay(30);
+			start_play(512);
+			delay(70);
+			stop_play();
 			break;
 		case PuchaseFailedAlarm:
 			break;
