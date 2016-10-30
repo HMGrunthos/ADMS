@@ -24,30 +24,35 @@ void setDisplayMessage(enum DisplayMessage message)
 	DOG.clear_display();
    switch(message) {
       case PurchaseWarningMessage:
-			DOG.position(1,1);
-			DOG.string("PurchaseWarningMessage");
-			rgbBacklight(255, 0, 0);
-         break;
+					DOG.position(1,1);
+					// DOG.string("An item is aboutto be purchased in 30 seconds!");
+					DOG.string("PurchaseWarningMessage");
+					rgbBacklight(255, 0, 0);
+        break;
       case AbortedPuchaseMessage:
-			DOG.position(1,1);
-			DOG.string("AbortedPuchaseMessage");
-			rgbBacklight(0, 255, 0);
-         break;
+					DOG.position(1,1);
+					//DOG.string("You have abortedthe purchase!");
+					DOG.string("AbortedPuchaseMessage");
+					rgbBacklight(0, 255, 0);
+        break;
       case PuchasingNowMessage:
-			DOG.position(1,1);
-			DOG.string("PuchasingNowMessage");
-			rgbBacklight(0, 0, 255);
-         break;
+					DOG.position(1,1);
+					//DOG.string("The order is    being placed.");
+					DOG.string("PuchasingNowMessage");
+					rgbBacklight(0, 0, 255);
+        break;
       case PuchaseFailedMessage:
-			DOG.position(1,1);
-			DOG.string("PuchaseFailedMessage");
-			rgbBacklight(0, 255, 255);
-         break;
+					DOG.position(1,1);
+					//DOG.string("Failed to impact on your bank ballance.");
+					DOG.string("PuchaseFailedMessage");
+					rgbBacklight(0, 255, 255);
+        break;
       case PuchasedMadeMessage:
-			DOG.position(1,1);
-			DOG.string("PuchasedMadeMessage");
-			rgbBacklight(255, 0, 255);
-         break;
+					DOG.position(1,1);
+					// DOG.string("Negatively impacted your bank ballance.");
+					DOG.string("PuchasedMadeMessage");
+					rgbBacklight(255, 0, 255);
+      	break;
    }
 }
 

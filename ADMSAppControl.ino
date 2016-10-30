@@ -4,11 +4,11 @@
 const unsigned long int WAKEINTERVAL = 30000; // In milliseconds
 const unsigned long int INETCONNECTIONTIMEOUT = 5000; // In milliseconds
 const unsigned long int PURCHASETIMEOUT = 10000; // In milliseconds
-const unsigned long int TAUNTTIMEOUT = 1000; // In milliseconds
+const unsigned long int TAUNTTIMEOUT = 5000; // In milliseconds
 const unsigned long int PURCHASECOMPLETETIMEOUT = 30000; // In milliseconds
 const char FIXEDGOOD[] = "B000NM4OHK";
 
-const int BUTTONPIN = D4;
+const int BUTTONPIN = D3;
 
 enum ADMSSystemState {
 	Sleeping,
@@ -43,7 +43,7 @@ struct {
 		unsigned long int taunt;
 		unsigned long int purchaseComplete;
 	} timeouts;
-} appState = {Sleeping, {0, 0, 0, 0, 0}};
+} appState = {Sleeping, "", {0, 0, 0, 0, 0}};
 
 // Internet functions
 void attemptToConnectToInternet();
