@@ -11,7 +11,7 @@
       "Operation": "ItemSearch",
       "Keywords": "{{keywords}}",
       "AssociateTag": "a052260-21",
-      "AWSAccessKeyId": "AKIAIYD5UUEI3ZPSC2NQ"
+      "AWSAccessKeyId": "xxxxxxxxxxxxxxx"
     },
     "requestType": "GET",
     "noDefaults": true,
