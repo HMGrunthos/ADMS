@@ -1,3 +1,9 @@
+#include "Arduino.h"
+#include "sha256.h"
+#include "Base64.h"
+
+char key[] = "yAiOLqFITOmF8MUE3UnLSQfNrexSNPGVysRAFtB1";
+
 char orderId[256] = "";
 int state = 0;
 
@@ -6,6 +12,42 @@ void setup() {
   // Subscribe to the integration response event
   Particle.subscribe("hook-response/zinc-purchase", getOrderID, MY_DEVICES);
   Particle.subscribe("hook-response/zinc-checkorder", getOrderStatus, MY_DEVICES);
+
+
+  delay (10000);
+
+  // Header, Timestamps and query
+  std::string header = "GET\nwebservices.amazon.co.uk\n/onca/xml\n";
+  std::string timestamp = (std::string)Time.format("%Y-%m-%dT%H%%3A%M%%3A%SZ");
+  std::string timestampURL = (std::string)Time.format("%Y-%m-%dT%H:%M:%SZ");
+  std::string query = "AWSAccessKeyId=AKIAIYD5UUEI3ZPSC2NQ&AssociateTag=a052260-21&Keywords=particle&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=Electronics&Service=AWSECommerceService&Sort=price";
+  query += "&Timestamp=" + timestamp ;
+
+  // String to Sign
+  std::string tosign = header + query;
+  /*Serial.print("tosign result: ");
+  Serial.println(tosign.c_str());*/
+
+  // SHA256 with HMAC
+  Sha256.initHmac((uint8_t*)key, strlen(key));
+  Sha256.print(tosign.c_str());
+
+  // Get SHA256 result
+  char* sign = (char*) Sha256.resultHmac();
+
+  // BASE64 Encode
+  int signLen = 32;
+  int encodedSignLen = base64_enc_len(signLen);
+  char encodedSign[encodedSignLen];
+  base64_encode(encodedSign, sign, signLen);
+  /*Serial.print("sign   result: ");
+  Serial.println(encodedSign);*/
+
+  // Data to pulish
+  char data[256];
+  snprintf(data, sizeof(data), "{\"timestamp\":\"%s\", \"signature\":\"%s\"}", timestampURL.c_str(), encodedSign);
+  Particle.publish("amazon-search", data, PRIVATE);
+
 }
 
 void getOrderID(const char *event, const char *data) {
@@ -71,6 +113,9 @@ void loop() {
     // Wait for Order Status
     case 3 :
       // Do Nothing
+      break;
+    // Get Amazon Products
+    case 50 :
       break;
   }
   delay(5000);

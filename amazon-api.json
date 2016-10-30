@@ -1,0 +1,19 @@
+{
+    "event": "amazon-search",
+    "url": "http://webservices.amazon.co.uk/onca/xml",
+    "query": {
+      "Signature": "{{signature}}",
+      "Timestamp": "{{timestamp}}",
+      "Sort": "price",
+      "Service": "AWSECommerceService",
+      "SearchIndex": "Electronics",
+      "ResponseGroup": "ItemAttributes",
+      "Operation": "ItemSearch",
+      "Keywords": "particle",
+      "AssociateTag": "a052260-21",
+      "AWSAccessKeyId": "AKIAIYD5UUEI3ZPSC2NQ"
+    },
+    "requestType": "GET",
+    "noDefaults": true,
+    "mydevices": true
+}
