@@ -1,0 +1,14 @@
+{
+    "event": "zinc-getdetails",
+    "url": "https://api.zinc.io/v1/products/{{PARTICLE_EVENT_VALUE}}",
+    "requestType": "GET",
+    "auth": {
+        "username": "293FDBBF3755CCD1F32EFDFC"
+    },
+    "query": {
+      "retailer": "amazon_uk"
+    },
+    "responseTemplate": "{{title}}|{{cleaned_product_description}}|{{asin}}",
+    "rejectUnauthorized": true,
+    "mydevices": true
+}

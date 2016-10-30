@@ -9,6 +9,7 @@
       "SearchIndex": "{{searchIndex}}",
       "ResponseGroup": "ItemAttributes",
       "Operation": "ItemSearch",
+      "MaximumPrice": "600",
       "Keywords": "{{keywords}}",
       "AssociateTag": "a052260-21",
       "AWSAccessKeyId": "xxxxxxxxxxxxxxx"

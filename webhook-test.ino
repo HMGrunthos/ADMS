@@ -10,6 +10,7 @@ void getProductId(const char *event, const char *data) {
   std::string temp = (std::string)xmlTakeParam(data, "ParentASIN");
   if(strcmp(temp.c_str(), "") != 0) {
     Serial.printlnf("Application>\tProductId Found=%s", temp.c_str());
+    Particle.publish("zinc-getdetails", temp.c_str(), PRIVATE);
   }
 }
 
@@ -29,6 +30,20 @@ void getOrderId(const char *event, const char *data) {
 
   strcpy(orderId, data);
   state = 2;
+}
+
+void getProductDetails(const char *event, const char *data) {
+  // Process Data
+  char *title;
+  char *description;
+  char *productId;
+  char *temp;
+  temp =         strdupa (data);
+  title =        strsep(&temp, "|");
+  description =  strsep(&temp, "|");
+  productId =   strsep(&temp, "|");
+
+  Serial.printlnf("Application>\tProductID=%s Title=%s Description=%s", productId, title, description);
 }
 
 void getOrderStatus(const char *event, const char *data) {
@@ -85,7 +100,7 @@ void purchaseSelectedGoods(const char* productId) {
 
 void requestAmazonSearch(std::string keywords, std::string searchIndex) {
   delay(10000);
-  Serial.println("Application>\tRequesting an amazon search...");
+  Serial.printlnf("Application>\tRequesting an Amazon search for %s in %s!", keywords, searchIndex);
   // Header, Timestamps and query
   std::string header = "GET\nwebservices.amazon.co.uk\n/onca/xml\n";
   std::string timestamp = (std::string)Time.format("%Y-%m-%dT%H%%3A%M%%3A%SZ"); // Needs to be as %3a for signing
@@ -94,7 +109,7 @@ void requestAmazonSearch(std::string keywords, std::string searchIndex) {
   // Query MUST be in Alphabetical Order
   std::string query =
     AWSSKEY + "&Keywords=" + keywords +
-    "&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=" +
+    "&MaximumPrice=600&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=" +
     searchIndex + "&Service=AWSECommerceService&Sort=price&Timestamp=" +
     timestamp;
 
@@ -137,6 +152,7 @@ void setup() {
   // Subscribe to the integration response event
   Particle.subscribe("hook-response/zinc-purchase", getOrderId, MY_DEVICES);
   Particle.subscribe("hook-response/zinc-checkorder", getOrderStatus, MY_DEVICES);
+  Particle.subscribe("hook-response/zinc-getdetails", getProductDetails, MY_DEVICES);
   Particle.subscribe("hook-response/amazon-search", getProductId, MY_DEVICES);
 
   requestAmazonSearch("iPhone", "Electronics");
