@@ -3,13 +3,10 @@
 #include "Base64.h"
 #include "secret.h"
 
-char orderId[256] = "";
-int state = 0;
-
 void getProductId(const char *event, const char *data) {
   std::string temp = (std::string)xmlTakeParam(data, "ParentASIN");
   if(strcmp(temp.c_str(), "") != 0) {
-    Serial.printlnf("Application>\tProductId Found=%s", temp.c_str());
+    Serial.printlnf("Purchase API>\tProductId Found=%s", temp.c_str());
     Particle.publish("zinc-getdetails", temp.c_str(), PRIVATE);
   }
 }
@@ -27,9 +24,9 @@ String xmlTakeParam(String inStr,String needParam) {
 void getOrderId(const char *event, const char *data) {
   // Debug
   //Serial.printlnf("Order ID Received=%s", data);
-
-  strcpy(orderId, data);
-  state = 2;
+  /*strcpy(orderId, data);
+  state = 2;*/
+  Particle.publish("zinc-checkorder", data, PRIVATE);
 }
 
 void getProductDetails(const char *event, const char *data) {
@@ -43,11 +40,11 @@ void getProductDetails(const char *event, const char *data) {
   description =  strsep(&temp, "|");
   productId =   strsep(&temp, "|");
 
-  Serial.printlnf("Application>\tProductID=%s Title=%s Description=%s", productId, title, description);
+  Serial.printlnf("Purchase API>\tProductID=%s Title=%s Description=%s", productId, title, description);
 }
 
-void getOrderStatus(const char *event, const char *data) {
-
+//
+int getOrderStatus(const char *event, const char *data) {
   // Process Data
   char *type;
   char *code;
@@ -67,40 +64,28 @@ void getOrderStatus(const char *event, const char *data) {
 
   // Keep Checking until success
   if(strcmp(code,"request_processing") == 0) {
-    Serial.printlnf("Application>\tOrder is being processed...");
-    state = 2;
+    Serial.printlnf("Purchase API>\tOrder is being processed...");
+    return 2;
   // Error
   } else if (strcmp(merchantId,"") != 0) {
-    Serial.printlnf("Application>\tOrder Success! Amazon Order ID=%s", merchantId);
-    state = 99;
+    Serial.printlnf("Purchase API>\tOrder Success! Amazon Order ID=%s", merchantId);
+    return 0; // Success
   } else {
-    Serial.printlnf("Application>\tOrder Error! Type=%s Code=%s Message=%s", type, code, message);
-    strcpy(orderId, "");
-    state = 99;
+    Serial.printlnf("Purchase API>\tOrder Error! Type=%s Code=%s Message=%s", type, code, message);
+    return 1; // Fail
   }
 
 }
 
 void purchaseSelectedGoods(const char* productId) {
-  // Start Delay
-  Serial.println("Application>\tWaiting 30s to purchase");
-  delay(10000);
-  // Start Delay
-  Serial.println("Application>\tWaiting 20s to purchase");
-  delay(10000);
-  // Start Delay
-  Serial.println("Application>\tWaiting 10s to purchase");
-  delay(10000);
-
   // Trigger the purchase
-  Serial.println("Application>\tPurchasing...");
+  Serial.println("Purchase API>\tPurchasing...");
   Particle.publish("zinc-purchase", productId, PRIVATE);
-  state = 1;
 }
 
 void requestAmazonSearch(std::string keywords, std::string searchIndex) {
   delay(10000);
-  Serial.printlnf("Application>\tRequesting an Amazon search for %s in %s!", keywords, searchIndex);
+  Serial.printlnf("Purchase API>\tRequesting an Amazon search for %s in %s!", keywords, searchIndex);
   // Header, Timestamps and query
   std::string header = "GET\nwebservices.amazon.co.uk\n/onca/xml\n";
   std::string timestamp = (std::string)Time.format("%Y-%m-%dT%H%%3A%M%%3A%SZ"); // Needs to be as %3a for signing
@@ -147,42 +132,9 @@ void requestAmazonSearch(std::string keywords, std::string searchIndex) {
   Particle.publish("amazon-search", data, PRIVATE);
 }
 
-void setup() {
-  Serial.begin(9600);
-  // Subscribe to the integration response event
+void initPurchasingAPI() {
   Particle.subscribe("hook-response/zinc-purchase", getOrderId, MY_DEVICES);
   Particle.subscribe("hook-response/zinc-checkorder", getOrderStatus, MY_DEVICES);
   Particle.subscribe("hook-response/zinc-getdetails", getProductDetails, MY_DEVICES);
   Particle.subscribe("hook-response/amazon-search", getProductId, MY_DEVICES);
-
-  requestAmazonSearch("iPhone", "Electronics");
-
-}
-
-void loop() {
-
-  switch(state) {
-    // Make Purchase
-    case 0 :
-      //purchaseSelectedGoods("B00J06V1Q2"); // RULER (1.99)
-      purchaseSelectedGoods("B000NM4OHK"); // RULER ADDON (0.49) - Fails
-      break;
-    // Wait for Order ID
-    case 1 :
-      // Do Nothing
-      break;
-    // Request Order Status
-    case 2 :
-      Particle.publish("zinc-checkorder", orderId, PRIVATE);
-      state = 3;
-      break;
-    // Wait for Order Status
-    case 3 :
-      // Do Nothing
-      break;
-    // Get Amazon Products
-    case 50 :
-      break;
-  }
-  delay(5000);
 }
