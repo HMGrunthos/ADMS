@@ -3,6 +3,8 @@
 #include "Base64.h"
 #include "secret.h"
 
+char orderId[256] ="";
+
 void getProductId(const char *event, const char *data) {
   std::string temp = (std::string)xmlTakeParam(data, "ParentASIN");
   if(strcmp(temp.c_str(), "") != 0) {
@@ -24,9 +26,7 @@ String xmlTakeParam(String inStr,String needParam) {
 void getOrderId(const char *event, const char *data) {
   // Debug
   //Serial.printlnf("Order ID Received=%s", data);
-  /*strcpy(orderId, data);
-  state = 2;*/
-  Particle.publish("zinc-checkorder", data, PRIVATE);
+  strcpy(orderId, data);
 }
 
 void getProductDetails(const char *event, const char *data) {
@@ -42,9 +42,9 @@ void getProductDetails(const char *event, const char *data) {
 
   Serial.printlnf("Purchase API>\tProductID=%s Title=%s Description=%s", productId, title, description);
 }
-
+int orderState = 2;
 //
-int getOrderStatus(const char *event, const char *data) {
+void getOrderStatus(const char *event, const char *data) {
   // Process Data
   char *type;
   char *code;
@@ -65,27 +65,41 @@ int getOrderStatus(const char *event, const char *data) {
   // Keep Checking until success
   if(strcmp(code,"request_processing") == 0) {
     Serial.printlnf("Purchase API>\tOrder is being processed...");
-    return 2;
+    orderState = 2;
   // Error
   } else if (strcmp(merchantId,"") != 0) {
     Serial.printlnf("Purchase API>\tOrder Success! Amazon Order ID=%s", merchantId);
-    return 0; // Success
+    orderState = 0; // Success
   } else {
     Serial.printlnf("Purchase API>\tOrder Error! Type=%s Code=%s Message=%s", type, code, message);
-    return 1; // Fail
+    orderState = 1; // Fail
   }
 
+}
+
+
+
+int getOrderState()
+{
+  if(strcmp(orderId,"")!=0) {
+    Particle.publish("zinc-checkorder", orderId, PRIVATE);
+    return orderState;
+  } else {
+    return 2;
+  }
 }
 
 void purchaseSelectedGoods(const char* productId) {
   // Trigger the purchase
   Serial.println("Purchase API>\tPurchasing...");
+  orderState = 2;
+  orderId[0] = '\0';
   Particle.publish("zinc-purchase", productId, PRIVATE);
 }
 
 void requestAmazonSearch(std::string keywords, std::string searchIndex) {
   delay(10000);
-  Serial.printlnf("Purchase API>\tRequesting an Amazon search for %s in %s!", keywords, searchIndex);
+  //Serial.printlnf("Purchase API>\tRequesting an Amazon search for %s in %s!", keywords, searchIndex);
   // Header, Timestamps and query
   std::string header = "GET\nwebservices.amazon.co.uk\n/onca/xml\n";
   std::string timestamp = (std::string)Time.format("%Y-%m-%dT%H%%3A%M%%3A%SZ"); // Needs to be as %3a for signing
