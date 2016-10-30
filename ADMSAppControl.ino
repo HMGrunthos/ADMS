@@ -1,4 +1,5 @@
 #include "DisplayBehaviour.h"
+#include "AlarmBehaviour.h"
 #include "purchasingAPI.h"
 
 const unsigned long int WAKEINTERVAL = 30000; // In milliseconds
@@ -23,14 +24,6 @@ enum ADMSSystemState {
 	StartPurchasing,
 	WaitForPurchaseComplete,
 	TauntUser
-};
-
-enum AlarmSound {
-	PurchaseWarningAlarm,
-	AbortedPuchaseAlarm,
-	PuchasingNowAlarm,
-	PuchaseFailedAlarm,
-	PuchaseMadeAlarm
 };
 
 struct {
@@ -237,29 +230,13 @@ static void initHardware()
 {
 	pinMode(BUTTONPIN, INPUT_PULLUP);
 	initDisplay();
+	initAlarm();
 }
 
 static void powerDownPeripherals()
 {
 	powerDownDisplay();
 	powerDownAudio();
-}
-
-// Alarm sounding function
-void soundAlarm(enum AlarmSound alarm)
-{
-	switch(alarm) {
-		case PurchaseWarningAlarm:
-			break;
-		case AbortedPuchaseAlarm:
-			break;
-		case PuchasingNowAlarm:
-			break;
-		case PuchaseFailedAlarm:
-			break;
-		case PuchaseMadeAlarm:
-			break;
-	}
 }
 
 void powerDownAudio()
