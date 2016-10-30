@@ -25,7 +25,7 @@ void setDisplayMessage(enum DisplayMessage message)
    switch(message) {
       case PurchaseWarningMessage:
 			DOG.position(1,1);
-			DOG.string("PurchaseWarningMessage");
+			DOG.string("PurchaseWarningMessageAlarm");
 			rgbBacklight(255, 0, 0);
          break;
       case AbortedPuchaseMessage:
