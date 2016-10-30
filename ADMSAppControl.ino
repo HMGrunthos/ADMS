@@ -3,10 +3,11 @@
 #include "purchasingAPI.h"
 
 const unsigned long int WAKEINTERVAL = 30000; // In milliseconds
+const unsigned long int WAKEDEVIATION = 20000; // In milliseconds
 const unsigned long int INETCONNECTIONTIMEOUT = 5000; // In milliseconds
 const unsigned long int PURCHASETIMEOUT = 10000; // In milliseconds
-const unsigned long int TAUNTTIMEOUT = 5000; // In milliseconds
-const unsigned long int PURCHASECOMPLETETIMEOUT = 30000; // In milliseconds
+const unsigned long int TAUNTTIMEOUT = 6000; // In milliseconds
+const unsigned long int PURCHASECOMPLETETIMEOUT = 20000; // In milliseconds
 const char FIXEDGOOD[] = "B000NM4OHK";
 
 const int BUTTONPIN = D3;
@@ -36,7 +37,7 @@ struct {
 		unsigned long int taunt;
 		unsigned long int purchaseComplete;
 	} timeouts;
-} appState = {Sleeping, "", {0, 0, 0, 0, 0}};
+} appState = {ConnectToInternetStart, "", {0, 0, 0, 0, 0}};
 
 // Internet functions
 void attemptToConnectToInternet();
@@ -107,7 +108,7 @@ void loop()
 			break;
 		case ConnectToInternetFailed:
 			//Serial.println("In ConnectToInternetFailed");
-			appState.timeouts.wake = setTimeout(WAKEINTERVAL);
+			appState.timeouts.wake = setTimeout(WAKEINTERVAL + random(WAKEDEVIATION) - WAKEDEVIATION/2);
 			appState.systemState = Sleeping;
 			break;
 		case FindItem:
@@ -122,7 +123,7 @@ void loop()
 			break;
 		case FailedToFindItem:
 			Serial.println("In FailedToFindItem");
-			appState.timeouts.wake = setTimeout(WAKEINTERVAL);
+			appState.timeouts.wake = setTimeout(WAKEINTERVAL + random(WAKEDEVIATION) - WAKEDEVIATION/2);
 			appState.systemState = Sleeping;
 			break;
 		case AlertUserToPurchase:
@@ -191,13 +192,15 @@ void loop()
 				setDisplayMessage(PuchaseFailedMessage);
 				appState.systemState = TauntUser;
 			}
-			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
+			if(appState.systemState == TauntUser) {
+				appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
+			}
 			break;
 		case TauntUser:
 			// Serial.println("In TauntUser");
 			if(hasTimedOut(appState.timeouts.taunt)) { // Finished taunting the user
 				Serial.println("Taunt over going to sleep");
-				appState.timeouts.wake = setTimeout(WAKEINTERVAL);
+				appState.timeouts.wake = setTimeout(WAKEINTERVAL + random(WAKEDEVIATION) - WAKEDEVIATION/2);
 				appState.systemState = Sleeping;
 			} else {
 				// Serial.println("Taunting...");
@@ -209,6 +212,7 @@ void loop()
 
 static unsigned long int setTimeout(unsigned long int timeout)
 {
+	Serial.printlnf("Timeout duration :%i:", timeout);
 	return millis() + timeout;
 }
 
