@@ -6,10 +6,10 @@
       "Timestamp": "{{timestamp}}",
       "Sort": "price",
       "Service": "AWSECommerceService",
-      "SearchIndex": "Electronics",
+      "SearchIndex": "{{searchIndex}}",
       "ResponseGroup": "ItemAttributes",
       "Operation": "ItemSearch",
-      "Keywords": "particle",
+      "Keywords": "{{keywords}}",
       "AssociateTag": "a052260-21",
       "AWSAccessKeyId": "AKIAIYD5UUEI3ZPSC2NQ"
     },
