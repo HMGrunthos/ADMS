@@ -1,3 +1,6 @@
+#include "dogm_7036.h"
+#include "DisplayBehaviour.h"
+
 static dogm_7036 DOG;
 
 //the following port definitions are used by our demo board "EA PCBARDDOG7036"
@@ -23,27 +26,27 @@ void setDisplayMessage(enum DisplayMessage message)
       case PurchaseWarningMessage:
 			DOG.position(1,1);
 			DOG.string("PurchaseWarningMessage");
-			rgb_backlight(255, 0, 0);
+			rgbBacklight(255, 0, 0);
          break;
       case AbortedPuchaseMessage:
 			DOG.position(1,1);
 			DOG.string("AbortedPuchaseMessage");
-			rgb_backlight(0, 255, 0);
+			rgbBacklight(0, 255, 0);
          break;
       case PuchasingNowMessage:
 			DOG.position(1,1);
 			DOG.string("PuchasingNowMessage");
-			rgb_backlight(0, 0, 255);
+			rgbBacklight(0, 0, 255);
          break;
       case PuchaseFailedMessage:
 			DOG.position(1,1);
 			DOG.string("PuchaseFailedMessage");
-			rgb_backlight(0, 255, 255);
+			rgbBacklight(0, 255, 255);
          break;
       case PuchasedMadeMessage:
 			DOG.position(1,1);
 			DOG.string("PuchasedMadeMessage");
-			rgb_backlight(255, 0, 255);
+			rgbBacklight(255, 0, 255);
          break;
    }
 }
@@ -57,20 +60,20 @@ void powerDownDisplay()
 {
 	clearDisplayMessage();
 	DOG.displ_onoff(false);
-	rgb_backlight(0, 0, 0);
+	rgbBacklight(0, 0, 0);
 }
 
 //The following functions controll the backlight with a PWM. Not needed for the display content
-void init_backlight()
+static void initBacklight()
 {
 	pinMode(LEDRED, OUTPUT);
 	pinMode(LEDGREEN, OUTPUT);
 	pinMode(LEDBLUE, OUTPUT);
-	rgb_backlight(0, 0, 0);
+	rgbBacklight(0, 0, 0);
 }
 
 //Use this function for RGB backlight
-void rgb_backlight(byte red, byte green, byte blue)
+static void rgbBacklight(byte red, byte green, byte blue)
 {
   analogWrite(LEDRED, red);
   analogWrite(LEDGREEN, green);

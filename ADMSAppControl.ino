@@ -1,3 +1,5 @@
+#include "DisplayBehaviour.h"
+
 const unsigned long int WAKEINTERVAL = 30000; // In milliseconds
 const unsigned long int INETCONNECTIONTIMEOUT = 5000; // In milliseconds
 const unsigned long int PURCHASETIMEOUT = 10000; // In milliseconds
@@ -27,14 +29,6 @@ enum AlarmSound {
 	PuchasingNowAlarm,
 	PuchaseFailedAlarm,
 	PuchaseMadeAlarm
-};
-
-enum DisplayMessage {
-	PurchaseWarningMessage,
-	AbortedPuchaseMessage,
-	PuchasingNowMessage,
-	PuchaseFailedMessage,
-	PuchasedMadeMessage
 };
 
 struct {
@@ -67,13 +61,7 @@ bool getButtonPressState();
 
 // Alarm sounding function
 void soundAlarm(enum AlarmSound alarm);
-void powerDownAlarm();
-
-// Display function
-void initDisplay();
-void setDisplayMessage(enum DisplayMessage message);
-void clearDisplayMessage();
-void powerDownDisplay();
+void powerDownAudio();
 
 // Utils and hardware management
 static unsigned long int setTimeout(unsigned long int timeout);
@@ -84,54 +72,68 @@ static void powerDownPeripherals();
 
 void setup()
 {
+	Serial.begin(9600);
+	delay(10000);
+	Serial.println("ADMS Starting...");
 	initHardware();
 }
 
 void loop()
 {
-	unsigned long int nextSleep = 0;
-
 	switch(appState.systemState) {
 		case Sleeping:
+			Serial.println("In Sleeping");
 			if(hasTimedOut(appState.timeouts.wake)) {
+				Serial.println("Attempting to connect to internet...");
 				appState.systemState = ConnectToInternetStart;
 			} else {
 				powerDownPeripherals();
 			}
 			break;
 		case ConnectToInternetStart:
+			Serial.println("In ConnectToInternetStart");
 			attemptToConnectToInternet();
 			appState.timeouts.connectToInternet = setTimeout(INETCONNECTIONTIMEOUT);
 			appState.systemState = ConnectToInternetInProgress;
 			break;
 		case ConnectToInternetInProgress:
+			Serial.println("In ConnectToInternetInProgress");
 			if(hasTimedOut(appState.timeouts.connectToInternet)) { // Then we timed out
+				Serial.println("Connection timed out");
 				appState.systemState = ConnectToInternetFailed;
 			} else { // Test if the connection succeed?
 				bool connectionMade = hasConnectionToInternetSucceeded();
 				if(connectionMade == true) { // Success?
+					Serial.println("Connection success find item");
 					appState.systemState = FindItem; // Then start searching for the item
 				} else { // Not yet
+					Serial.println("Waiting for connection");
 					appState.systemState = ConnectToInternetInProgress; // Keep waiting
 				}
 			}
 			break;
 		case ConnectToInternetFailed:
-			appState.timeouts.purchase = setTimeout(WAKEINTERVAL);
+			Serial.println("In ConnectToInternetFailed");
+			appState.timeouts.wake = setTimeout(WAKEINTERVAL);
 			appState.systemState = Sleeping;
 			break;
 		case FindItem:
+			Serial.println("In FindItem");
 			if(findItemToBuy(&appState.itemToPurchase)) { // Success?
+				Serial.println("Found item");
 				appState.systemState = AlertUserToPurchase;
 			} else { // Failed to find item
+				Serial.println("Failed to find item");
 				appState.systemState = FailedToFindItem; // Couldn't find an item, keep quiet about it
 			}
 			break;
 		case FailedToFindItem:
-			appState.timeouts.purchase = setTimeout(WAKEINTERVAL);
+			Serial.println("In FailedToFindItem");
+			appState.timeouts.wake = setTimeout(WAKEINTERVAL);
 			appState.systemState = Sleeping;
 			break;
 		case AlertUserToPurchase:
+			Serial.println("In AlertUserToPurchase");
 			sendPhoneAlert();
 			soundAlarm(PurchaseWarningAlarm);
 			setDisplayMessage(PurchaseWarningMessage);
@@ -139,25 +141,31 @@ void loop()
 			appState.systemState = CountdownToPurchase;
 			break;
 		case CountdownToPurchase:
+			Serial.println("In CountdownToPurchase");
 			// Display countdown
 			if(getButtonPressState()) {
+				Serial.println("Button pressed");
 				appState.systemState = PurchaseAborted;
 			} else { // Button not pressed before timed out
 				if(hasTimedOut(appState.timeouts.purchase)) { // Test the purchase timeout
 					// No button pressed so start making a purchase
+					Serial.println("Timed out purchasing...");
 					appState.systemState = StartPurchasing;
 				} else {
+					Serial.println("Counting down...");
 					appState.systemState = CountdownToPurchase; // Stay in the same state
 				}
 			}
 			break;
 		case PurchaseAborted:
+			Serial.println("In PurchaseAborted");
 			soundAlarm(AbortedPuchaseAlarm);
 			setDisplayMessage(AbortedPuchaseMessage);
 			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
 			appState.systemState = TauntUser;
 			break;
 		case StartPurchasing:
+		  Serial.println("In StartPurchasing");
 			soundAlarm(PuchasingNowAlarm);
 			setDisplayMessage(PuchasingNowMessage);
 			purchaseSelectedGoods(appState.itemToPurchase);
@@ -165,15 +173,19 @@ void loop()
 			appState.systemState = WaitForPurchaseComplete;
 			break;
 		case WaitForPurchaseComplete:
+		  Serial.println("In WaitForPurchaseComplete");
 			if(hasPurchaseSucceeded()) {
+				Serial.println("Got purchase success");
 				soundAlarm(PuchaseMadeAlarm);
 				setDisplayMessage(PuchasedMadeMessage);
 				appState.systemState = TauntUser;
 			} else if(hasPurchaseFailed()){
+				Serial.println("Got purchase failure");
 				soundAlarm(PuchaseFailedAlarm);
 				setDisplayMessage(PuchaseFailedMessage);
 				appState.systemState = TauntUser;
 			} else if(hasTimedOut(appState.timeouts.purchaseComplete)) {
+				Serial.println("Got purchase complete");
 				soundAlarm(PuchaseFailedAlarm);
 				setDisplayMessage(PuchaseFailedMessage);
 				appState.systemState = TauntUser;
@@ -181,10 +193,13 @@ void loop()
 			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
 			break;
 		case TauntUser:
+			Serial.println("In TauntUser");
 			if(hasTimedOut(appState.timeouts.taunt)) { // Finished taunting the user
-				appState.timeouts.purchase = setTimeout(WAKEINTERVAL);
+				Serial.println("Taunt over going to sleep");
+				appState.timeouts.wake = setTimeout(WAKEINTERVAL);
 				appState.systemState = Sleeping;
 			} else {
+				Serial.println("Taunting...");
 				appState.systemState = TauntUser; // Keep taunting with the message
 			}
 			break;
@@ -212,7 +227,7 @@ static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime)
 
 static void initHardware()
 {
-	pinMode(BUTTONPIN, INPUT_PULLHIGH);
+	pinMode(BUTTONPIN, INPUT_PULLUP);
 	initDisplay();
 }
 
@@ -239,32 +254,7 @@ void soundAlarm(enum AlarmSound alarm)
 	}
 }
 
-void powerDownAlarm()
-{
-}
-
-// Display function
-void setDisplayMessage(enum DisplayMessage message)
-{
-	switch(message) {
-		case PurchaseWarningMessage:
-			break;
-		case AbortedPuchaseMessage:
-			break;
-		case PuchasingNowMessage:
-			break;
-		case PuchaseFailedMessage:
-			break;
-		case PuchasedMadeMessage:
-			break;
-	}
-}
-
-void clearDisplayMessage()
-{
-}
-
-void powerDownDisplay()
+void powerDownAudio()
 {
 }
 
