@@ -128,8 +128,8 @@ void loop()
 		case AlertUserToPurchase:
 			Serial.println("In AlertUserToPurchase");
 			sendPhoneAlert();
-			soundAlarm(PurchaseWarningAlarm);
 			setDisplayMessage(PurchaseWarningMessage);
+			soundAlarm(PurchaseWarningAlarm);
 			appState.timeouts.purchase = setTimeout(PURCHASETIMEOUT);
 			appState.systemState = CountdownToPurchase;
 			break;
@@ -152,15 +152,15 @@ void loop()
 			break;
 		case PurchaseAborted:
 			Serial.println("In PurchaseAborted");
-			soundAlarm(AbortedPuchaseAlarm);
 			setDisplayMessage(AbortedPuchaseMessage);
+			soundAlarm(AbortedPuchaseAlarm);
 			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
 			appState.systemState = TauntUser;
 			break;
 		case StartPurchasing:
 		  Serial.println("In StartPurchasing");
-			soundAlarm(PuchasingNowAlarm);
 			setDisplayMessage(PuchasingNowMessage);
+			soundAlarm(PuchasingNowAlarm);
 			purchaseSelectedGoods(FIXEDGOOD);
 			appState.timeouts.purchaseComplete = setTimeout(PURCHASECOMPLETETIMEOUT);
 			appState.systemState = WaitForPurchaseComplete;
@@ -170,8 +170,8 @@ void loop()
 			switch(getOrderState()) {
 				case 0: // Success
 					Serial.println("Got purchase success");
-					soundAlarm(PuchaseMadeAlarm);
 					setDisplayMessage(PuchasedMadeMessage);
+					soundAlarm(PuchaseMadeAlarm);
 					appState.systemState = TauntUser;
 					break;
 				case 2: // Waiting
@@ -180,15 +180,15 @@ void loop()
 				case 1: // Fail
 				default:
 					Serial.println("Got purchase failure");
-					soundAlarm(PuchaseFailedAlarm);
 					setDisplayMessage(PuchaseFailedMessage);
+					soundAlarm(PuchaseFailedAlarm);
 					appState.systemState = TauntUser;
 					break;
 			}
 			if(hasTimedOut(appState.timeouts.purchaseComplete)) {
 				Serial.println("Got purchase failure (timeout)");
-				soundAlarm(PuchaseFailedAlarm);
 				setDisplayMessage(PuchaseFailedMessage);
+				soundAlarm(PuchaseFailedAlarm);
 				appState.systemState = TauntUser;
 			}
 			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
