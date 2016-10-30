@@ -1,5 +1,6 @@
+const unsigned long int WAKEINTERVAL = 30000; // In milliseconds
 const unsigned long int INETCONNECTIONTIMEOUT = 5000; // In milliseconds
-const unsigned long int PURCHASETIMEOUT = 30000; // In milliseconds
+const unsigned long int PURCHASETIMEOUT = 10000; // In milliseconds
 const unsigned long int TAUNTTIMEOUT = 1000; // In milliseconds
 const unsigned long int PURCHASECOMPLETETIMEOUT = 30000; // In milliseconds
 
@@ -40,12 +41,13 @@ struct {
 	enum ADMSSystemState systemState;
 	std::string itemToPurchase;
 	struct {
+		unsigned long int wake;
 		unsigned long int connectToInternet;
 		unsigned long int purchase;
 		unsigned long int taunt;
 		unsigned long int purchaseComplete;
 	} timeouts;
-} appState = {Sleeping, {0, 0, 0, 0}};
+} appState = {Sleeping, {0, 0, 0, 0, 0}};
 
 // Internet functions
 void attemptToConnectToInternet();
@@ -68,8 +70,10 @@ void soundAlarm(enum AlarmSound alarm);
 void powerDownAlarm();
 
 // Display function
+void initDisplay();
 void setDisplayMessage(enum DisplayMessage message);
 void clearDisplayMessage();
+void powerDownDisplay();
 
 // Utils and hardware management
 static unsigned long int setTimeout(unsigned long int timeout);
@@ -77,7 +81,6 @@ static bool hasTimedOut(unsigned long int timer);
 static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime);
 static void initHardware();
 static void powerDownPeripherals();
-static bool timeToWakeUp();
 
 void setup()
 {
@@ -90,8 +93,10 @@ void loop()
 
 	switch(appState.systemState) {
 		case Sleeping:
-			if(timeToWakeUp()) {
+			if(hasTimedOut(appState.timeouts.wake)) {
 				appState.systemState = ConnectToInternetStart;
+			} else {
+				powerDownPeripherals();
 			}
 			break;
 		case ConnectToInternetStart:
@@ -112,6 +117,7 @@ void loop()
 			}
 			break;
 		case ConnectToInternetFailed:
+			appState.timeouts.purchase = setTimeout(WAKEINTERVAL);
 			appState.systemState = Sleeping;
 			break;
 		case FindItem:
@@ -122,6 +128,7 @@ void loop()
 			}
 			break;
 		case FailedToFindItem:
+			appState.timeouts.purchase = setTimeout(WAKEINTERVAL);
 			appState.systemState = Sleeping;
 			break;
 		case AlertUserToPurchase:
@@ -175,7 +182,7 @@ void loop()
 			break;
 		case TauntUser:
 			if(hasTimedOut(appState.timeouts.taunt)) { // Finished taunting the user
-				powerDownPeripherals();
+				appState.timeouts.purchase = setTimeout(WAKEINTERVAL);
 				appState.systemState = Sleeping;
 			} else {
 				appState.systemState = TauntUser; // Keep taunting with the message
@@ -206,16 +213,13 @@ static bool hasTimedOut(unsigned long int timer, unsigned long int currentTime)
 static void initHardware()
 {
 	pinMode(BUTTONPIN, INPUT_PULLHIGH);
+	initDisplay();
 }
 
 static void powerDownPeripherals()
 {
-	clearDisplayMessage();
-}
-
-static bool timeToWakeUp()
-{
-	return true;
+	powerDownDisplay();
+	powerDownAudio();
 }
 
 // Alarm sounding function
@@ -257,6 +261,10 @@ void setDisplayMessage(enum DisplayMessage message)
 }
 
 void clearDisplayMessage()
+{
+}
+
+void powerDownDisplay()
 {
 }
 
