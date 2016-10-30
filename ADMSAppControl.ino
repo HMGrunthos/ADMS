@@ -1,10 +1,12 @@
 #include "DisplayBehaviour.h"
+#include "purchasingAPI.h"
 
 const unsigned long int WAKEINTERVAL = 30000; // In milliseconds
 const unsigned long int INETCONNECTIONTIMEOUT = 5000; // In milliseconds
 const unsigned long int PURCHASETIMEOUT = 10000; // In milliseconds
 const unsigned long int TAUNTTIMEOUT = 1000; // In milliseconds
 const unsigned long int PURCHASECOMPLETETIMEOUT = 30000; // In milliseconds
+const unsigned char* FIXEDGOOD = "B000NM4OHK";
 
 const int BUTTONPIN = D4;
 
@@ -49,9 +51,6 @@ bool hasConnectionToInternetSucceeded();
 
 // Purchasing functions
 bool findItemToBuy(std::string *itemToPurchase);
-void purchaseSelectedGoods(std::string itemToPurchase);
-bool hasPurchaseSucceeded();
-bool hasPurchaseFailed();
 
 // Phone alert functions
 void sendPhoneAlert();
@@ -76,6 +75,7 @@ void setup()
 	delay(10000);
 	Serial.println("ADMS Starting...");
 	initHardware();
+	initPurchasingAPI();
 }
 
 void loop()
@@ -168,24 +168,32 @@ void loop()
 		  Serial.println("In StartPurchasing");
 			soundAlarm(PuchasingNowAlarm);
 			setDisplayMessage(PuchasingNowMessage);
-			purchaseSelectedGoods(appState.itemToPurchase);
+			purchaseSelectedGoods(FIXEDGOOD);
 			appState.timeouts.purchaseComplete = setTimeout(PURCHASECOMPLETETIMEOUT);
 			appState.systemState = WaitForPurchaseComplete;
 			break;
 		case WaitForPurchaseComplete:
 		  Serial.println("In WaitForPurchaseComplete");
-			if(hasPurchaseSucceeded()) {
-				Serial.println("Got purchase success");
-				soundAlarm(PuchaseMadeAlarm);
-				setDisplayMessage(PuchasedMadeMessage);
-				appState.systemState = TauntUser;
-			} else if(hasPurchaseFailed()){
-				Serial.println("Got purchase failure");
-				soundAlarm(PuchaseFailedAlarm);
-				setDisplayMessage(PuchaseFailedMessage);
-				appState.systemState = TauntUser;
-			} else if(hasTimedOut(appState.timeouts.purchaseComplete)) {
-				Serial.println("Got purchase complete");
+			int orderState = getOrderStatus();
+			switch(orderState) {
+				case 0:
+					Serial.println("Got purchase success");
+					soundAlarm(PuchaseMadeAlarm);
+					setDisplayMessage(PuchasedMadeMessage);
+					appState.systemState = TauntUser;
+					break;
+				case 1:
+					delay(5000);
+					break;
+				default:
+					Serial.println("Got purchase failure");
+					soundAlarm(PuchaseFailedAlarm);
+					setDisplayMessage(PuchaseFailedMessage);
+					appState.systemState = TauntUser;
+					break;
+			}
+			if(hasTimedOut(appState.timeouts.purchaseComplete)) {
+				Serial.println("Got purchase failure (timeout)");
 				soundAlarm(PuchaseFailedAlarm);
 				setDisplayMessage(PuchaseFailedMessage);
 				appState.systemState = TauntUser;
