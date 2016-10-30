@@ -6,7 +6,7 @@ const unsigned long int INETCONNECTIONTIMEOUT = 5000; // In milliseconds
 const unsigned long int PURCHASETIMEOUT = 10000; // In milliseconds
 const unsigned long int TAUNTTIMEOUT = 1000; // In milliseconds
 const unsigned long int PURCHASECOMPLETETIMEOUT = 30000; // In milliseconds
-const unsigned char* FIXEDGOOD = "B000NM4OHK";
+const char FIXEDGOOD[] = "B000NM4OHK";
 
 const int BUTTONPIN = D4;
 
@@ -82,7 +82,7 @@ void loop()
 {
 	switch(appState.systemState) {
 		case Sleeping:
-			Serial.println("In Sleeping");
+			//Serial.println("In Sleeping");
 			if(hasTimedOut(appState.timeouts.wake)) {
 				Serial.println("Attempting to connect to internet...");
 				appState.systemState = ConnectToInternetStart;
@@ -97,7 +97,7 @@ void loop()
 			appState.systemState = ConnectToInternetInProgress;
 			break;
 		case ConnectToInternetInProgress:
-			Serial.println("In ConnectToInternetInProgress");
+			//Serial.println("In ConnectToInternetInProgress");
 			if(hasTimedOut(appState.timeouts.connectToInternet)) { // Then we timed out
 				Serial.println("Connection timed out");
 				appState.systemState = ConnectToInternetFailed;
@@ -107,13 +107,13 @@ void loop()
 					Serial.println("Connection success find item");
 					appState.systemState = FindItem; // Then start searching for the item
 				} else { // Not yet
-					Serial.println("Waiting for connection");
+					//Serial.println("Waiting for connection");
 					appState.systemState = ConnectToInternetInProgress; // Keep waiting
 				}
 			}
 			break;
 		case ConnectToInternetFailed:
-			Serial.println("In ConnectToInternetFailed");
+			//Serial.println("In ConnectToInternetFailed");
 			appState.timeouts.wake = setTimeout(WAKEINTERVAL);
 			appState.systemState = Sleeping;
 			break;
@@ -141,7 +141,7 @@ void loop()
 			appState.systemState = CountdownToPurchase;
 			break;
 		case CountdownToPurchase:
-			Serial.println("In CountdownToPurchase");
+			//Serial.println("In CountdownToPurchase");
 			// Display countdown
 			if(getButtonPressState()) {
 				Serial.println("Button pressed");
@@ -152,7 +152,7 @@ void loop()
 					Serial.println("Timed out purchasing...");
 					appState.systemState = StartPurchasing;
 				} else {
-					Serial.println("Counting down...");
+					//Serial.println("Counting down...");
 					appState.systemState = CountdownToPurchase; // Stay in the same state
 				}
 			}
@@ -174,17 +174,17 @@ void loop()
 			break;
 		case WaitForPurchaseComplete:
 		  Serial.println("In WaitForPurchaseComplete");
-			int orderState = getOrderStatus();
-			switch(orderState) {
-				case 0:
+			switch(getOrderState()) {
+				case 0: // Success
 					Serial.println("Got purchase success");
 					soundAlarm(PuchaseMadeAlarm);
 					setDisplayMessage(PuchasedMadeMessage);
 					appState.systemState = TauntUser;
 					break;
-				case 1:
+				case 2: // Waiting
 					delay(5000);
 					break;
+				case 1: // Fail
 				default:
 					Serial.println("Got purchase failure");
 					soundAlarm(PuchaseFailedAlarm);
@@ -201,13 +201,13 @@ void loop()
 			appState.timeouts.taunt = setTimeout(TAUNTTIMEOUT);
 			break;
 		case TauntUser:
-			Serial.println("In TauntUser");
+			// Serial.println("In TauntUser");
 			if(hasTimedOut(appState.timeouts.taunt)) { // Finished taunting the user
 				Serial.println("Taunt over going to sleep");
 				appState.timeouts.wake = setTimeout(WAKEINTERVAL);
 				appState.systemState = Sleeping;
 			} else {
-				Serial.println("Taunting...");
+				// Serial.println("Taunting...");
 				appState.systemState = TauntUser; // Keep taunting with the message
 			}
 			break;
